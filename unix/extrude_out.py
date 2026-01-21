@@ -152,7 +152,13 @@ def main():
             vertices=corners,
         )
 
+        # Get the height of the buildings
         height = get_height(element)
+
+        # Extra check to make sure that the outline of the building is a valid one
+        polys = path.polygons_closed
+        if not polys[0]:
+            continue # Don't try to add a mesh if it is going to be invalid
 
         # Get the mesh for that building
         mesh = path.extrude(height=height)
