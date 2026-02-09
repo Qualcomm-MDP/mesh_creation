@@ -4,11 +4,14 @@ from pyproj import Transformer
 import trimesh
 import numpy as np
 import json
+import PIL
 
 # Global, path to the outputted JSON file
 INPUT_JSON = "osm_data_buildings.json" 
 STREET_JSON = "osm_data_roads.json"
 SCALE = 5 # What level of precision we want
+
+WRAP_IMG = "wraps/sample_wrap.jpg"
 
 # Will generate under the assumption that the starting_point is located in the top left corner
 def generate_plane(height, width):
@@ -30,7 +33,6 @@ def generate_plane(height, width):
 
     return plane
 
-
 def initialize_plane(data):
     # Rounding to a decimal place of 5 gives us around 1 m accuracy in the real world (worst case at equator), according to Chat
     max_lat = int(MAX_LAT * (10**SCALE))
@@ -42,8 +44,7 @@ def initialize_plane(data):
     delta_long = abs(max_lon - min_lon) # height of our underlying plane mesh
 
     plane = generate_plane(delta_lat, delta_long) # plane is a mesh
-    return plane
-    
+    return plane  
 
 def get_corners(element):
     # Go into the API to get the geometry lat, lon points (representative of the nodes)
@@ -106,7 +107,6 @@ def get_height(element):
 def get_width(element):
     return 2
 
-
 def main():
     # Just helps for debugging
     trimesh.util.attach_to_log()
@@ -162,9 +162,13 @@ def main():
 
         # Get the mesh for that building
         mesh = path.extrude(height=height)
+
+        # Apply the wrap to the mesh
+        texture_img = PIL.Image.open(WRAP_IMG)
+        textured_mesh = mesh.unwrap(texture_img)
         
         # Add that to the list of all the elements
-        buildings.append(mesh)
+        buildings.append(textured_mesh)
     
     # Combine the meshes into one just so that we can use it as a singular mesh
     combined_mesh = trimesh.util.concatenate(buildings)
