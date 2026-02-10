@@ -5,13 +5,14 @@ import trimesh
 import numpy as np
 import json
 import PIL
+import matplotlib.pyplot as plt
 
 # Global, path to the outputted JSON file
 INPUT_JSON = "osm_data_buildings.json" 
 STREET_JSON = "osm_data_roads.json"
 SCALE = 5 # What level of precision we want
 
-WRAP_IMG = "wraps/sample_wrap.jpg"
+WRAP_IMG = "wraps/sample_building.jpg"
 
 # Will generate under the assumption that the starting_point is located in the top left corner
 def generate_plane(height, width):
@@ -161,14 +162,16 @@ def main():
             continue # Don't try to add a mesh if it is going to be invalid
 
         # Get the mesh for that building
+        height = -1 * height
         mesh = path.extrude(height=height)
 
-        # Apply the wrap to the mesh
-        texture_img = PIL.Image.open(WRAP_IMG)
-        textured_mesh = mesh.unwrap(texture_img)
+        # # Apply the wrap to the mesh
+        # texture_img = PIL.Image.open(WRAP_IMG)
+        # textured_mesh = mesh.unwrap(texture_img)
+        # buildings.append(textured_mesh)
         
         # Add that to the list of all the elements
-        buildings.append(textured_mesh)
+        buildings.append(mesh)
     
     # Combine the meshes into one just so that we can use it as a singular mesh
     combined_mesh = trimesh.util.concatenate(buildings)
