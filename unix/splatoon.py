@@ -11,7 +11,7 @@ import numpy as np
 # Define hyperparameters to be used to test an image on it
 SCALE = 5
 CAMERA_LOC = (42.29228, -83.71637) # In GPS coordinates
-HEADING = 135
+HEADING = 140
 INPUT_JSON = "osm_data_buildings.json" # Get the JSON building for the bounding box
 INPUT_IMG = "wraps/IMG_6915.JPG" # The image that we want to test our mesh against
 radius = 0.5  # adjust size for the balls
@@ -78,7 +78,6 @@ colors = []
 delta_heading = (HOR_FOV * 2) / int(width / interval)
 delta_tilt = (VERT_FOV * 2) / int(height / interval)
 height_center = int(height / 2) # Get the center of the image, will be useful later
-print(height_center)
 
 heading = MIN_HEADING # Set the current starting position to be the min heading, leftmost so that we sweep from left to right
 for i in range(0, width, interval):
@@ -107,9 +106,9 @@ for i in range(0, width, interval):
         if height_center + height_offset < height and i < width:
             column_colors.append(splatter_img[height_center + height_offset][i])
             column_colors.append(splatter_img[height_center - height_offset][i])
-        else: # Otherwise just grab blac, or some other null color
-            column_colors.append([0, 0, 0])
-            column_colors.append([0, 0, 0])
+        else: # Otherwise just grab black, or some other null color
+            column_colors.append([1, 1, 1])
+            column_colors.append([1, 1, 1])
         
         # Update the magnitude tilt angle of the rays
         tilt += delta_tilt
@@ -120,13 +119,16 @@ for i in range(0, width, interval):
     heading += delta_heading # Update the heading
 
 # Want a place to store the colors that actually are relevant, the ones that are touching the mesh
-hit_colors = []
+hit_colors = [] # the ones that pass through the ground-truth image
+mesh_colors = [] # The mesh colors that we intersect
+
 
 # Go through the rays
 for i, column_ray in enumerate(rays):
     # Same deal as before, works best with a 2D data structure to keep track of the colors and the rays
     column_locations = []
     column_hit_colors = []
+    mesh_hit_colors = []
     for j, ray in enumerate(column_ray):
         # Compute endpoint
         ray_end = ray_origin + (ray * ray_length)
@@ -149,15 +151,27 @@ for i, column_ray in enumerate(rays):
             column_locations.append(locations)
             column_hit_colors.append(colors[i][j])
 
+            # Get triangle indices
+            tri_index = index_tri[0]  # example triangle
+            vertex_colors = street_mesh.visual.vertex_colors
+            triangle_vertex_indices = street_mesh.faces[tri_index]  # shape: (3,)
+            tri_vertex_colors = vertex_colors[triangle_vertex_indices]
+            avg_color = tri_vertex_colors.mean(axis=0)
+            mesh_hit_colors.append(avg_color)
+
     # Store the locations and their colors
     locations_hit.append(column_locations)
     hit_colors.append(column_hit_colors)
+    mesh_colors.append(mesh_hit_colors)
 
 # Optional to use a point cloud instead of the spheres, but the point clouds can't have color, which is essential
 # locations_hit = np.array(locations_hit)
 # colors = np.array([[255, 0, 0]]) * len(locations_hit)
 # point_cloud = trimesh.points.PointCloud(locations_hit, colors=colors)
 # scene.add_geometry(point_cloud)
+
+# Create a list to store the cosine similarities (naive similar metric between two colors)
+cos_sims = []
 
 # Go thorugh the locations that were intersected
 for i, column in enumerate(locations_hit):
@@ -166,8 +180,11 @@ for i, column in enumerate(locations_hit):
             # Create a small UV sphere
             sphere = trimesh.creation.uv_sphere(radius=radius)
 
-            # Convert the color into RGBA format
+            # Convert the color into RGBA format for the colors from the image
             rgba = np.hstack([hit_colors[i][j], 255])
+            
+            # Optional , we can visualize out the colors that we intersected from the mesh
+            # rgba = mesh_colors[i][j]
 
             # Assign the color to that sphere
             sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
@@ -177,6 +194,19 @@ for i, column in enumerate(locations_hit):
 
             # Add it to the scene
             scene.add_geometry(sphere)
+
+            # Compute the cosine similarity (tf-idf style)
+            img_vector = np.array(hit_colors[i][j]) 
+            img_vector = img_vector / np.linalg.norm(img_vector) # Normalize the vectors
+
+            mesh_vector = np.array(mesh_colors[i][j][:3])
+            mesh_vector = mesh_vector / np.linalg.norm(mesh_vector) # Normalize the vectors
+
+            cos_sim = np.dot(img_vector, mesh_vector)
+            cos_sims.append(cos_sim)
+
+avg_cos_sim = sum(cos_sims) / len(cos_sims) # Calculate the average cosine similarity, extremely naive and primitive way to get similarity between mesh colors and image colors
+print(avg_cos_sim)
 
 # Create a small UV sphere
 sphere = trimesh.creation.uv_sphere(radius=radius)
