@@ -132,7 +132,6 @@ def main():
     # Initialize that initial plane, great name I know
     hisodflkjas = initialize_plane(data_buildings)
     hisodflkjas.visual.face_colors = [0, 255, 0, 255]
-    hisodflkjas.export("hisodflkjas.glb")
 
     # buildings will be the combined mesh of everything in the scene, so the underlying plane, buildings, roads etc.
     buildings = []
@@ -141,6 +140,7 @@ def main():
     # Go through the elements returned by overpass' API
     for i, element in enumerate(data_buildings["elements"]):
 
+        id = element["id"]
         # Get the corners
         corners = get_corners(element)
 
@@ -164,46 +164,59 @@ def main():
         # Get the mesh for that building
         height = -1 * height
         mesh = path.extrude(height=height)
+        print(type(mesh))
+        mesh = path.extrude(height=height)
+
+        if isinstance(mesh, list):
+            mesh = trimesh.util.concatenate([
+                m.to_mesh() if hasattr(m, "to_mesh") else m
+                for m in mesh
+            ])
+        else:
+            if hasattr(mesh, "to_mesh"):
+                mesh = mesh.to_mesh()
+
+        mesh.export(f"output_meshes/{id}.glb", file_type='glb')
 
         # # Apply the wrap to the mesh
         # texture_img = PIL.Image.open(WRAP_IMG)
         # textured_mesh = mesh.unwrap(texture_img)
         # buildings.append(textured_mesh)
+
+        # Export it out in glb format
         
         # Add that to the list of all the elements
-        buildings.append(mesh)
+        # buildings.append(mesh)
     
-    # Combine the meshes into one just so that we can use it as a singular mesh
-    combined_mesh = trimesh.util.concatenate(buildings)
+    # # Combine the meshes into one just so that we can use it as a singular mesh
+    # combined_mesh = trimesh.util.concatenate(buildings)
+    # combined_mesh.export(f"output_meshes/{i}.glb") 
 
-    # Export it out in glb format
-    combined_mesh.export("combined.glb") 
-
-    data_roads = None
-    # Read in the json data
-    with open(STREET_JSON, "r") as f:
-        data_roads = json.load(f)
+    # data_roads = None
+    # # Read in the json data
+    # with open(STREET_JSON, "r") as f:
+    #     data_roads = json.load(f)
     
-    buildings_roads = []
-    buildings_roads.append(combined_mesh)
+    # buildings_roads = []
+    # buildings_roads.append(combined_mesh)
 
-    for i, road in enumerate(data_roads["elements"]):
-        nodes = get_corners(road)
+    # for i, road in enumerate(data_roads["elements"]):
+    #     nodes = get_corners(road)
 
-        path = shapely.geometry.LineString(nodes)
+    #     path = shapely.geometry.LineString(nodes)
 
-        width = get_width(road)
+    #     width = get_width(road)
 
-        street = path.buffer(width)
+    #     street = path.buffer(width)
 
-        mesh = trimesh.creation.extrude_polygon(street, height=0.2)
+    #     mesh = trimesh.creation.extrude_polygon(street, height=0.2)
 
-        buildings_roads.append(mesh)
+    #     buildings_roads.append(mesh)
     
-    combined_mesh = trimesh.util.concatenate(buildings_roads)
+    # combined_mesh = trimesh.util.concatenate(buildings_roads)
 
-    # Export it out in glb format
-    combined_mesh.export("everything.glb") 
+    # # Export it out in glb format
+    # combined_mesh.export("everything.glb") 
     
 
 
