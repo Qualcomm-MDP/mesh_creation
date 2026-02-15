@@ -186,39 +186,11 @@ def main():
         # Export it out in glb format
         
         # Add that to the list of all the elements
-        # buildings.append(mesh)
+        buildings.append(mesh)
     
-    # # Combine the meshes into one just so that we can use it as a singular mesh
-    # combined_mesh = trimesh.util.concatenate(buildings)
-    # combined_mesh.export(f"output_meshes/{i}.glb") 
-
-    # data_roads = None
-    # # Read in the json data
-    # with open(STREET_JSON, "r") as f:
-    #     data_roads = json.load(f)
-    
-    # buildings_roads = []
-    # buildings_roads.append(combined_mesh)
-
-    # for i, road in enumerate(data_roads["elements"]):
-    #     nodes = get_corners(road)
-
-    #     path = shapely.geometry.LineString(nodes)
-
-    #     width = get_width(road)
-
-    #     street = path.buffer(width)
-
-    #     mesh = trimesh.creation.extrude_polygon(street, height=0.2)
-
-    #     buildings_roads.append(mesh)
-    
-    # combined_mesh = trimesh.util.concatenate(buildings_roads)
-
-    # # Export it out in glb format
-    # combined_mesh.export("everything.glb") 
-    
-
+    # Combine the meshes into one just so that we can use it as a singular mesh
+    combined_mesh = trimesh.util.concatenate(buildings)
+    combined_mesh.export(f"combined.glb")
 
 if __name__ == "__main__":
     main()

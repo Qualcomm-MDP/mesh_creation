@@ -2,8 +2,8 @@ import requests
 import json
 
 # These represent the region of interest, and we can change them here or control them elsewhere using like a website or smth like before
-min_lat, min_lon = 42.2802, -83.7451
-max_lat, max_lon = 42.2872, -83.7253
+min_lat, min_lon = 42.28537, -83.72264
+max_lat, max_lon = 42.299009999999996, -83.70899999999999
 
 # this is good for one-off buildings / sampling. should not be used for the actual pipeline
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
