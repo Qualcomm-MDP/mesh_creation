@@ -6,24 +6,26 @@ from scipy.spatial.transform import Rotation as R
 import cv2
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 # A ray casting method that we could use to evaluate the quality of the mesh with images, like mapillary ones
 
 # Define hyperparameters to be used to test an image on it
 SCALE = 5
 radius = 0.5  # adjust size for the balls
-interval = 50 # How many pixels we wold like to skip in the original image
+interval = 100 # How many pixels we wold like to skip in the original image
 altitude = 1.83
 JSON_path = "per_coordinate_osm_mapillary.json"
 
 def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=False):
 
-    # splatter_img = cv2.imread(INPUT_IMG)
+    # Use this when just testing local images
+    splatter_img = cv2.imread(INPUT_IMG)
 
-    # Read in the image from a url
-    res = requests.get(INPUT_IMG)
-    img_array = np.frombuffer(res.content, np.uint8)
-    splatter_img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    # # Use this when reading the image from a url, like from Mapillary
+    # res = requests.get(INPUT_IMG)
+    # img_array = np.frombuffer(res.content, np.uint8)
+    # splatter_img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     splatter_img = cv2.cvtColor(splatter_img, cv2.COLOR_BGR2RGB) # Convert to RGB format
     height, width, _ = splatter_img.shape
     print(height, width)
@@ -112,11 +114,17 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
         colors.append(column_colors)
         rays.append(column_rays)
         heading += delta_heading # Update the heading
+    
+    # # Optional to visualize out
+    # img = np.array(colors, dtype=np.uint8)
+
+    # plt.imshow(img)
+    # plt.axis('off')
+    # plt.show()
 
     # Want a place to store the colors that actually are relevant, the ones that are touching the mesh
     hit_colors = [] # the ones that pass through the ground-truth image
     mesh_colors = [] # The mesh colors that we intersect
-
 
     # Go through the rays
     for i, column_ray in enumerate(rays):
@@ -158,24 +166,24 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
         hit_colors.append(column_hit_colors)
         mesh_colors.append(mesh_hit_colors)
 
-    locations_flat = []
-    for column in locations_hit:
-        for hit in column:
-            locations_flat.append(hit)
+    # locations_flat = []
+    # for column in locations_hit:
+    #     for hit in column:
+    #         locations_flat.append(hit)
 
-    colors_flat = []
-    for col in hit_colors:
-        for color in col:
-            colors_flat.append(color)
+    # colors_flat = []
+    # for col in hit_colors:
+    #     for color in col:
+    #         colors_flat.append(color)
 
-    # Optional to use a point cloud instead of the spheres, but the point clouds can't have color, which is essential
-    locations_flat = np.array(locations_flat)
-    locations_flat = locations_flat.squeeze() # To get rid of the middle dimension cuz I dunno why, like (1841, 1, 3) → (1841, 3)
-    colors_flat = np.array(colors_flat)
-    print(locations_flat.shape)
-    print(colors_flat.shape)
-    point_cloud = trimesh.points.PointCloud(locations_flat, colors=colors_flat)
-    scene.add_geometry(point_cloud)
+    # # Optional to use a point cloud instead of the spheres, but the point clouds can't have color, which is essential
+    # locations_flat = np.array(locations_flat)
+    # locations_flat = locations_flat.squeeze() # To get rid of the middle dimension cuz I dunno why, like (1841, 1, 3) → (1841, 3)
+    # colors_flat = np.array(colors_flat)
+    # print(locations_flat.shape)
+    # print(colors_flat.shape)
+    # point_cloud = trimesh.points.PointCloud(locations_flat, colors=colors_flat)
+    # scene.add_geometry(point_cloud)
 
     # Create a list to store the cosine similarities (naive similar metric between two colors)
     cos_sims = []
@@ -185,19 +193,19 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
         for j, ray_sent_out in enumerate(column):
             for loc in ray_sent_out: # For each ray that we casted and hit the mesh
 
-                # # Alterante to point cloud, manually create a sphere with a certain color
-                # # Create a small UV sphere
-                # sphere = trimesh.creation.uv_sphere(radius=radius)
-                # # Convert the color into RGBA format for the colors from the image
-                # rgba = np.hstack([hit_colors[i][j], 255])
-                # # Optional , we can visualize out the colors that we intersected from the mesh
-                # # rgba = mesh_colors[i][j]
-                # # Assign the color to that sphere
-                # sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
-                # # Place the sphere into the place that we want it
-                # sphere.apply_translation([loc[0], loc[1], loc[2]])
-                # # Add it to the scene
-                # scene.add_geometry(sphere)
+                # Alterante to point cloud, manually create a sphere with a certain color
+                # Create a small UV sphere
+                sphere = trimesh.creation.uv_sphere(radius=radius)
+                # Convert the color into RGBA format for the colors from the image
+                rgba = np.hstack([hit_colors[i][j], 255])
+                # Optional , we can visualize out the colors that we intersected from the mesh
+                # rgba = mesh_colors[i][j]
+                # Assign the color to that sphere
+                sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
+                # Place the sphere into the place that we want it
+                sphere.apply_translation([loc[0], loc[1], loc[2]])
+                # Add it to the scene
+                scene.add_geometry(sphere)
 
                 # Compute the cosine similarity (tf-idf style)
                 img_vector = np.array(hit_colors[i][j]) 
@@ -222,13 +230,10 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
     sphere.apply_translation([local_cam_lat, local_cam_lon, -1.83])
     scene.add_geometry(sphere)
 
-    # # Show the scene using trimesh's built-in show
-    # scene.show()
-
     if checkpoint:
         # Optionally can export if we want to
         scene.export("scene.glb")
-        print("Scene exported successfuly!")
+        print("Scene exported successfully to scene.glb!")
 
 def splatoon(json):
     street_mesh = trimesh.load_mesh("combined.glb")
@@ -238,29 +243,31 @@ def splatoon(json):
     scene.add_geometry(street_mesh) # Add in the pre-existing street mesh
     data_buildings = json["bbox_south_west_north_east"]
 
-    mapillary = json["mapillary"]
-    for entry in mapillary:
-        CAMERA_LOC = (float(entry["computed_geometry"]["coordinates"][1]), float(entry["computed_geometry"]["coordinates"][0]))
-        HEADING = float(entry["computed_compass_angle"])
-        INPUT_IMG = entry["thumb_original_url"]
+    # # A sample mapillary image
+    # CAMERA_LOC = (42.291878, -83.715503)
+    # HEADING = float(285)
+    # INPUT_IMG = "https://scontent-det1-1.xx.fbcdn.net/m1/v/t6/An8zM1y78BKHD60-luu9x7zNXbdMjB18ne9OGtdX4ZTiDdb_CQFbxCrbEFbNVMPUB5SvsQzNHvci3rolq7dFeOGs6IIleHpVS8N6AIbtW_vEarGJ_3XMe6hGrUj-U8JtPu-ztfT1w7ObyyfjFKPkR-o?stp=s2048x1536&_nc_gid=f-QyVZm94rTqiPaRmrj1oA&_nc_oc=AdnxFneB5KzVHqB2HpBspvYg25-jvMYZeJKv3ZCHbuyf4kyT0SOl_EvdUZ7xl-BsjgI&ccb=10-6&oh=00_AftTKI1Sn8OIjbZfffQe2FX_FVl7lIv6DSm5ADK1PWMSlw&oe=69B99862&_nc_sid=201bca"
 
-        splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
+    # A sample mapillary image
+    CAMERA_LOC = (42.29228, -83.71637)
+    HEADING = 138
+    INPUT_IMG = "wraps/IMG_6915.JPG"
+    splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
+
+    # mapillary = json["mapillary"]
+    # for entry in mapillary:
+    #     CAMERA_LOC = (float(entry["computed_geometry"]["coordinates"][1]), float(entry["computed_geometry"]["coordinates"][0]))
+    #     HEADING = float(entry["computed_compass_angle"])
+    #     INPUT_IMG = entry["thumb_original_url"]
+
+    #     splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
         
-    # Optionally can export if we want to
-    scene.export("scene.glb")
-    print("Scene exported successfuly!")
+    # Optionally can show if it we want to
+    scene.show()
 
-    # CAMERA_LOC = (42.291922766897, -83.715969850416) # In GPS coordinates
-    # HEADING = 202.03277345749
-    # INPUT_IMG = "https://scontent-det1-1.xx.fbcdn.net/m1/v/t6/An_ctQTYqVOBeik90NbkgKsnfO6enJLAX4dFDQHuSlmacMwcL3Dan2DqSFY2spEAiLlStTGH9aMqGXiXbHFeS2N2C1eJ6wozyBlyvO1IIDSAETN3F9UnjggtvNprESyZBF0GLKOItruCNa-dwsF6og?edm=AOnQwmMEAAAA&_nc_gid=U6qvzXSVC1thg0uzdcFfQA&_nc_oc=AdnKD1WfMg5_1Mzg7AVrrjNwJEa5ZCc2nO6mYbo_WT1bx3NCGigipoT-2g2SahIB3eslXPXSyjxv8UrZ3RC7q91g&ccb=10-5&oh=00_Aft1nT-yLkH4isSQH8vJp94wH6TPhjj2YU-uXh6kV68emg&oe=69B8D2B8&_nc_sid=201bca" # The image that we want to test our mesh against
-
-    # splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh)
-
-    # CAMERA_LOC = (42.290206235672, -83.716387241673) # In GPS coordinates
-    # HEADING = 276.37184374256
-    # INPUT_IMG = "https://scontent-det1-1.xx.fbcdn.net/m1/v/t6/An9U59RyLQ1vcXpCSWEclXiKCEGSGP-u00qufIA9rxdVXC9EugsQQbXq6gYNtth_UqfINigPQZgwIa28OGpJY76YdiPwnFDCVqBcrZ-Yerur8Ne3E53SDUSOGTWiTBR2IXT7BlUv7BC9pHmd--ooEDA?edm=AOnQwmMEAAAA&_nc_gid=U6qvzXSVC1thg0uzdcFfQA&_nc_oc=AdnaJokKQLafQAFrV4uYqF7jtqBgrHr3Sm9kMlZ4fkiKzhgFp2HQbMcaxiJcA14NNN7KpquJe18IgrHBcGJqlrAB&ccb=10-5&oh=00_AftCABAFoHx9gh6QEINHCYTdDg2Rjff0BJPNdEm6deYMdg&oe=69B8EA07&_nc_sid=201bca"
-
-    # splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh)
+    # # Optionally can export if we want to
+    # scene.export("scene.glb")
+    # print("Scene exported successfuly!")
 
 def main():
 
