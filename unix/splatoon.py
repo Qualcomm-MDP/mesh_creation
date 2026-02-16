@@ -15,7 +15,7 @@ SCALE = 5
 radius = 0.5  # adjust size for the balls
 interval = 100 # How many pixels we wold like to skip in the original image
 altitude = 1.83
-JSON_path = "per_coordinate_osm_mapillary.json"
+JSON_path = "unix/per_coordinate_osm_mapillary.json"
 
 def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=False):
 
@@ -236,7 +236,7 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
         print("Scene exported successfully to scene.glb!")
 
 def splatoon(json):
-    street_mesh = trimesh.load_mesh("combined.glb")
+    street_mesh = trimesh.load_mesh("unix/combined.glb")
 
     # Create a trimesh scene
     scene = trimesh.Scene()
@@ -251,7 +251,7 @@ def splatoon(json):
     # A sample mapillary image
     CAMERA_LOC = (42.29228, -83.71637)
     HEADING = 138
-    INPUT_IMG = "wraps/IMG_6915.JPG"
+    INPUT_IMG = "unix/wraps/IMG_6915.JPG"
     splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
 
     # mapillary = json["mapillary"]
@@ -262,8 +262,8 @@ def splatoon(json):
 
     #     splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
         
-    # Optionally can show if it we want to
-    scene.show()
+    # # Optionally can show if it we want to
+    # scene.show()
 
     # # Optionally can export if we want to
     # scene.export("scene.glb")

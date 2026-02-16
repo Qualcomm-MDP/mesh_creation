@@ -20,7 +20,7 @@ python3 unix/splatoon.py
 
 That will run splatoon script that is located in the folder titled "unix". That will use the pre-generated street mesh and coordinates. The script as of right now also outputs
 the generated mesh as a GLB file, but due to the way that I am rendering it right now, it is rather large. I am still working on the point clouds as they are a much more
-memory efficient way to place the colors, rather than generating out individual spheres wil color. However, this approach will work for now just to see what it is.
+memory efficient way to place the colors, rather than generating out individual spheres wil color. However, this approach will work for now just to see what it is. You can render out the outputted GLB file using Liz's website viewer or another oneline tool. I am currently working on fixing the issues that I was running into previously, so just hang tight.
 
 <img width="906" height="558" alt="Screenshot 2026-02-16 at 3 02 56 PM" src="https://github.com/user-attachments/assets/4ff3f34f-4308-49b9-94b2-7535a6161060" />
 
