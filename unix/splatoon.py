@@ -13,19 +13,25 @@ import matplotlib.pyplot as plt
 # Define hyperparameters to be used to test an image on it
 SCALE = 5
 radius = 0.5  # adjust size for the balls
-interval = 100 # How many pixels we wold like to skip in the original image
+interval = 25 # How many pixels we wold like to skip in the original image
 altitude = 1.83
 JSON_path = "unix/per_coordinate_osm_mapillary.json"
 
 def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=False):
 
-    # Use this when just testing local images
-    splatter_img = cv2.imread(INPUT_IMG)
+    # # Use this when just testing local images
+    # splatter_img = cv2.imread(INPUT_IMG)
 
-    # # Use this when reading the image from a url, like from Mapillary
-    # res = requests.get(INPUT_IMG)
-    # img_array = np.frombuffer(res.content, np.uint8)
-    # splatter_img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    # Use this when reading the image from a url, like from Mapillary
+    res = requests.get(INPUT_IMG)
+    img_array = np.frombuffer(res.content, np.uint8)
+    splatter_img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+    # # Optional show the original mapillary image
+    # cv2.imshow("Image", splatter_img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
     splatter_img = cv2.cvtColor(splatter_img, cv2.COLOR_BGR2RGB) # Convert to RGB format
     height, width, _ = splatter_img.shape
     print(height, width)
@@ -54,7 +60,7 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
     ray_origin = np.array([[local_cam_lat, local_cam_lon, -1 * altitude]]) # Start of the ray, where the picture was taken (ignore the negative sign, all meshes were inverted so they were extruded to a negative height to account for that)
     ray_length = 100.0                     # how far to draw the ray (visualization purposes)
 
-    FOCAL_LENGTH = 3165 # Focal length for apple camera, kinda estimated with chat and using the specs fond online: https://support.apple.com/en-us/111831
+    FOCAL_LENGTH = 3165 / 2 # Focal length for apple camera, kinda estimated with chat and using the specs fond online: https://support.apple.com/en-us/111831
     HOR_FOV = math.atan((width / 2) / FOCAL_LENGTH) # Calculate the horizontal FOV
     VERT_FOV = math.atan((height / 2) / FOCAL_LENGTH) # Calculate the vertical FOV
 
@@ -75,6 +81,7 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
     delta_heading = (HOR_FOV * 2) / int(width / interval)
     delta_tilt = (VERT_FOV * 2) / int(height / interval)
     height_center = int(height / 2) # Get the center of the image, will be useful later
+    print(height_center)
 
     heading = MIN_HEADING # Set the current starting position to be the min heading, leftmost so that we sweep from left to right
     for i in range(0, width, interval):
@@ -89,13 +96,13 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
 
         # Crucial, angles change the difference in height for the color pixels, rays shot out with a smaller tilt angle will be closer together basically, so we need to select the colors appropriately
         height_offset = 0 # Want to calculate the height offset for the pixels as we go down x number of degrees as it varies
-        focal_length_adj = FOCAL_LENGTH / math.cos(heading) # Tells us how long our baseline segment is
+        focal_length_adj = abs(FOCAL_LENGTH / math.cos(abs(HEADING - heading))) # Tells us how long our baseline segment is
 
-        # Go through the tilts, only need to calculate half and then can just mirror ir
-        for j in range(0, int(height / 2), interval):
-            tilt = math.sin(tilt) # Get the tilt angle
-            ray_direction_up = np.array([[x, y, tilt]]) # Create rays that tilt both positive and negative
-            ray_direction_down = np.array([[x, y, -1 * tilt]])
+        # Go through the tilts, only need to calculate half and then can just mirror it
+        while(height_offset <= int(height_center)):
+            tilt_sin = math.sin(tilt) # Get the tilt angle
+            ray_direction_up = np.array([[x, y, tilt_sin]]) # Create rays that tilt both positive and negative
+            ray_direction_down = np.array([[x, y, -1 * tilt_sin]])
             column_rays.append(ray_direction_up) # Store those rays' directions so that we can create them later
             column_rays.append(ray_direction_down)
 
@@ -166,59 +173,57 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
         hit_colors.append(column_hit_colors)
         mesh_colors.append(mesh_hit_colors)
 
-    # locations_flat = []
-    # for column in locations_hit:
-    #     for hit in column:
-    #         locations_flat.append(hit)
+    locations_flat = []
+    for column in locations_hit:
+        for hit in column:
+            locations_flat.append(hit)
 
-    # colors_flat = []
-    # for col in hit_colors:
-    #     for color in col:
-    #         colors_flat.append(color)
+    colors_flat = []
+    for col in hit_colors:
+        for color in col:
+            colors_flat.append(color)
 
-    # # Optional to use a point cloud instead of the spheres, but the point clouds can't have color, which is essential
-    # locations_flat = np.array(locations_flat)
-    # locations_flat = locations_flat.squeeze() # To get rid of the middle dimension cuz I dunno why, like (1841, 1, 3) → (1841, 3)
-    # colors_flat = np.array(colors_flat)
-    # print(locations_flat.shape)
-    # print(colors_flat.shape)
-    # point_cloud = trimesh.points.PointCloud(locations_flat, colors=colors_flat)
-    # scene.add_geometry(point_cloud)
+    # Optional to use a point cloud instead of the spheres, but the point clouds can't have color, which is essential
+    locations_flat = np.array(locations_flat)
+    locations_flat = locations_flat.squeeze() # To get rid of the middle dimension cuz I dunno why, like (1841, 1, 3) → (1841, 3)
+    colors_flat = np.array(colors_flat)
+    point_cloud = trimesh.points.PointCloud(locations_flat, colors=colors_flat)
+    scene.add_geometry(point_cloud)
 
-    # Create a list to store the cosine similarities (naive similar metric between two colors)
-    cos_sims = []
+    # # Create a list to store the cosine similarities (naive similar metric between two colors)
+    # cos_sims = []
 
-    # Go thorugh the locations that were intersected
-    for i, column in enumerate(locations_hit):
-        for j, ray_sent_out in enumerate(column):
-            for loc in ray_sent_out: # For each ray that we casted and hit the mesh
+    # # Go thorugh the locations that were intersected
+    # for i, column in enumerate(locations_hit):
+    #     for j, ray_sent_out in enumerate(column):
+    #         for loc in ray_sent_out: # For each ray that we casted and hit the mesh
 
-                # Alterante to point cloud, manually create a sphere with a certain color
-                # Create a small UV sphere
-                sphere = trimesh.creation.uv_sphere(radius=radius)
-                # Convert the color into RGBA format for the colors from the image
-                rgba = np.hstack([hit_colors[i][j], 255])
-                # Optional , we can visualize out the colors that we intersected from the mesh
-                # rgba = mesh_colors[i][j]
-                # Assign the color to that sphere
-                sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
-                # Place the sphere into the place that we want it
-                sphere.apply_translation([loc[0], loc[1], loc[2]])
-                # Add it to the scene
-                scene.add_geometry(sphere)
+    #             # # Alterante to point cloud, manually create a sphere with a certain color
+    #             # # Create a small UV sphere
+    #             # sphere = trimesh.creation.uv_sphere(radius=radius)
+    #             # # Convert the color into RGBA format for the colors from the image
+    #             # rgba = np.hstack([hit_colors[i][j], 255])
+    #             # # Optional , we can visualize out the colors that we intersected from the mesh
+    #             # # rgba = mesh_colors[i][j]
+    #             # # Assign the color to that sphere
+    #             # sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
+    #             # # Place the sphere into the place that we want it
+    #             # sphere.apply_translation([loc[0], loc[1], loc[2]])
+    #             # # Add it to the scene
+    #             # scene.add_geometry(sphere)
 
-                # Compute the cosine similarity (tf-idf style)
-                img_vector = np.array(hit_colors[i][j]) 
-                img_vector = img_vector / np.linalg.norm(img_vector) # Normalize the vectors
+    #             # Compute the cosine similarity (tf-idf style)
+    #             img_vector = np.array(hit_colors[i][j]) 
+    #             img_vector = img_vector / np.linalg.norm(img_vector) # Normalize the vectors
 
-                mesh_vector = np.array(mesh_colors[i][j][:3])
-                mesh_vector = mesh_vector / np.linalg.norm(mesh_vector) # Normalize the vectors
+    #             mesh_vector = np.array(mesh_colors[i][j][:3])
+    #             mesh_vector = mesh_vector / np.linalg.norm(mesh_vector) # Normalize the vectors
 
-                cos_sim = np.dot(img_vector, mesh_vector)
-                cos_sims.append(cos_sim)
+    #             cos_sim = np.dot(img_vector, mesh_vector)
+    #             cos_sims.append(cos_sim)
 
-    avg_cos_sim = sum(cos_sims) / len(cos_sims) # Calculate the average cosine similarity, extremely naive and primitive way to get similarity between mesh colors and image colors
-    print(avg_cos_sim)
+    # avg_cos_sim = sum(cos_sims) / len(cos_sims) # Calculate the average cosine similarity, extremely naive and primitive way to get similarity between mesh colors and image colors
+    # print(avg_cos_sim)
 
     # Create a small UV sphere
     sphere = trimesh.creation.uv_sphere(radius=radius)
@@ -248,26 +253,27 @@ def splatoon(json):
     # HEADING = float(285)
     # INPUT_IMG = "https://scontent-det1-1.xx.fbcdn.net/m1/v/t6/An8zM1y78BKHD60-luu9x7zNXbdMjB18ne9OGtdX4ZTiDdb_CQFbxCrbEFbNVMPUB5SvsQzNHvci3rolq7dFeOGs6IIleHpVS8N6AIbtW_vEarGJ_3XMe6hGrUj-U8JtPu-ztfT1w7ObyyfjFKPkR-o?stp=s2048x1536&_nc_gid=f-QyVZm94rTqiPaRmrj1oA&_nc_oc=AdnxFneB5KzVHqB2HpBspvYg25-jvMYZeJKv3ZCHbuyf4kyT0SOl_EvdUZ7xl-BsjgI&ccb=10-6&oh=00_AftTKI1Sn8OIjbZfffQe2FX_FVl7lIv6DSm5ADK1PWMSlw&oe=69B99862&_nc_sid=201bca"
 
-    # A sample mapillary image
-    CAMERA_LOC = (42.29228, -83.71637)
-    HEADING = 138
-    INPUT_IMG = "unix/wraps/IMG_6915.JPG"
-    splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
+    # # A sample image taken from my iphone
+    # CAMERA_LOC = (42.29228, -83.71637)
+    # HEADING = 138
+    # INPUT_IMG = "unix/wraps/IMG_6915.JPG"
 
-    # mapillary = json["mapillary"]
-    # for entry in mapillary:
-    #     CAMERA_LOC = (float(entry["computed_geometry"]["coordinates"][1]), float(entry["computed_geometry"]["coordinates"][0]))
-    #     HEADING = float(entry["computed_compass_angle"])
-    #     INPUT_IMG = entry["thumb_original_url"]
+    # splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
 
-    #     splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
+    mapillary = json["mapillary"]
+    for entry in mapillary:
+        CAMERA_LOC = (float(entry["computed_geometry"]["coordinates"][1]), float(entry["computed_geometry"]["coordinates"][0]))
+        HEADING = float(entry["computed_compass_angle"])
+        INPUT_IMG = entry["thumb_original_url"]
+
+        splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_mesh, checkpoint=True)
         
     # # Optionally can show if it we want to
     # scene.show()
 
-    # # Optionally can export if we want to
-    # scene.export("scene.glb")
-    # print("Scene exported successfuly!")
+    # Optionally can export if we want to
+    scene.export("scene.glb")
+    print("Scene exported successfuly to scene.glb!")
 
 def main():
 
