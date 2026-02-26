@@ -8,11 +8,11 @@ import PIL
 import matplotlib.pyplot as plt
 
 # Global, path to the outputted JSON file
-INPUT_JSON = "osm_data_buildings.json" 
-STREET_JSON = "osm_data_roads.json"
+INPUT_JSON = "unix/osm_data_buildings.json" 
+STREET_JSON = "unix/osm_data_roads.json"
 SCALE = 5 # What level of precision we want
 
-WRAP_IMG = "wraps/sample_building.jpg"
+WRAP_IMG = "unix/wraps/IMG_5895.png"
 
 # Will generate under the assumption that the starting_point is located in the top left corner
 def generate_plane(height, width):
@@ -32,7 +32,7 @@ def generate_plane(height, width):
     # Generate the plane :)
     plane = trimesh.Trimesh(vertices=corners, faces=faces)
 
-    return plane
+    return plane, corners, faces
 
 def initialize_plane(data):
     # Rounding to a decimal place of 5 gives us around 1 m accuracy in the real world (worst case at equator), according to Chat
@@ -44,8 +44,8 @@ def initialize_plane(data):
     delta_lat = abs(max_lat - min_lat) # width of our underlying plane mesh
     delta_long = abs(max_lon - min_lon) # height of our underlying plane mesh
 
-    plane = generate_plane(delta_lat, delta_long) # plane is a mesh
-    return plane  
+    plane, corners, faces = generate_plane(delta_lat, delta_long) # plane is a mesh
+    return plane, corners, faces
 
 def get_corners(element):
     # Go into the API to get the geometry lat, lon points (representative of the nodes)
@@ -110,7 +110,7 @@ def get_width(element):
 
 def main():
     # Just helps for debugging
-    trimesh.util.attach_to_log()
+    # trimesh.util.attach_to_log()
     data_buildings = None
     
     # Read in the json data
@@ -130,12 +130,34 @@ def main():
     MIN_LON = float(data_buildings["min_lon"])
     
     # Initialize that initial plane, great name I know
-    hisodflkjas = initialize_plane(data_buildings)
-    hisodflkjas.visual.face_colors = [0, 255, 0, 255]
+    hisodflkjas, plane_vertices, plane_faces = initialize_plane(data_buildings)
+    st_img = PIL.Image.open(WRAP_IMG)
+
+    # Add the satellite image of the plane in order to have some sort of a street view
+    uv = np.array([
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1]
+    ])
+
+    material = trimesh.visual.texture.SimpleMaterial(image=st_img)
+    print(material)
+
+    texture = trimesh.visual.texture.TextureVisuals(
+        uv=uv,
+        image=st_img
+    )
+
+    mesh = trimesh.Trimesh(
+        vertices=plane_vertices,
+        faces=plane_faces,
+        visual=texture
+    )
 
     # buildings will be the combined mesh of everything in the scene, so the underlying plane, buildings, roads etc.
     buildings = []
-    buildings.append(hisodflkjas) # Add in the plane to begin
+    buildings.append(mesh) # Add in the plane to begin
 
     # Go through the elements returned by overpass' API
     for i, element in enumerate(data_buildings["elements"]):
@@ -176,7 +198,8 @@ def main():
             if hasattr(mesh, "to_mesh"):
                 mesh = mesh.to_mesh()
 
-        mesh.export(f"output_meshes/{id}.glb", file_type='glb')
+        print("Saved building mesh!\n")
+        mesh.export(f"unix/output_meshes/{id}.glb", file_type='glb')
 
         # # Apply the wrap to the mesh
         # texture_img = PIL.Image.open(WRAP_IMG)
@@ -190,6 +213,7 @@ def main():
     
     # Combine the meshes into one just so that we can use it as a singular mesh
     combined_mesh = trimesh.util.concatenate(buildings)
+    print("Saved combined building mesh!\n")
     combined_mesh.export(f"combined.glb")
 
 if __name__ == "__main__":

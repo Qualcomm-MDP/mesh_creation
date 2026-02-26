@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # Define hyperparameters to be used to test an image on it
 SCALE = 5
 radius = 0.5  # adjust size for the balls
-interval = 25 # How many pixels we wold like to skip in the original image
+interval = 50 # How many pixels we wold like to skip in the original image
 altitude = 1.83
 JSON_path = "unix/per_coordinate_osm_mapillary.json"
 
@@ -60,7 +60,7 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
     ray_origin = np.array([[local_cam_lat, local_cam_lon, -1 * altitude]]) # Start of the ray, where the picture was taken (ignore the negative sign, all meshes were inverted so they were extruded to a negative height to account for that)
     ray_length = 100.0                     # how far to draw the ray (visualization purposes)
 
-    FOCAL_LENGTH = 3165 / 2 # Focal length for apple camera, kinda estimated with chat and using the specs fond online: https://support.apple.com/en-us/111831
+    FOCAL_LENGTH = 3165 # Focal length for apple camera, kinda estimated with chat and using the specs fond online: https://support.apple.com/en-us/111831
     HOR_FOV = math.atan((width / 2) / FOCAL_LENGTH) # Calculate the horizontal FOV
     VERT_FOV = math.atan((height / 2) / FOCAL_LENGTH) # Calculate the vertical FOV
 
@@ -159,6 +159,10 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
             if len(locations) != 0:
                 column_locations.append(locations)
                 column_hit_colors.append(colors[i][j])
+                # hit_color = np.hstack([colors[i][j], 255])
+
+                # new_tri_vertex_colors = [hit_color, hit_color, hit_color]
+                # new_tri_vertex_colors = np.array(new_tri_vertex_colors)
 
                 # Get triangle indices
                 tri_index = index_tri[0]  # example triangle
@@ -198,19 +202,19 @@ def splatoon_one(CAMERA_LOC, HEADING, INPUT_IMG, data_buildings, scene, street_m
     #     for j, ray_sent_out in enumerate(column):
     #         for loc in ray_sent_out: # For each ray that we casted and hit the mesh
 
-    #             # # Alterante to point cloud, manually create a sphere with a certain color
-    #             # # Create a small UV sphere
-    #             # sphere = trimesh.creation.uv_sphere(radius=radius)
-    #             # # Convert the color into RGBA format for the colors from the image
-    #             # rgba = np.hstack([hit_colors[i][j], 255])
-    #             # # Optional , we can visualize out the colors that we intersected from the mesh
-    #             # # rgba = mesh_colors[i][j]
-    #             # # Assign the color to that sphere
-    #             # sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
-    #             # # Place the sphere into the place that we want it
-    #             # sphere.apply_translation([loc[0], loc[1], loc[2]])
-    #             # # Add it to the scene
-    #             # scene.add_geometry(sphere)
+    #             # Alterante to point cloud, manually create a sphere with a certain color
+    #             # Create a small UV sphere
+    #             sphere = trimesh.creation.uv_sphere(radius=radius)
+    #             # Convert the color into RGBA format for the colors from the image
+    #             rgba = np.hstack([hit_colors[i][j], 255])
+    #             # Optional , we can visualize out the colors that we intersected from the mesh
+    #             # rgba = mesh_colors[i][j]
+    #             # Assign the color to that sphere
+    #             sphere.visual.vertex_colors[:] = np.tile(rgba, (len(sphere.vertices),1))
+    #             # Place the sphere into the place that we want it
+    #             sphere.apply_translation([loc[0], loc[1], loc[2]])
+    #             # Add it to the scene
+    #             scene.add_geometry(sphere)
 
     #             # Compute the cosine similarity (tf-idf style)
     #             img_vector = np.array(hit_colors[i][j]) 
