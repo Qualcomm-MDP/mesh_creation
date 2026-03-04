@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set -Eeuo pipefail
-set -x
-
-python3 api_buildings.py
-python3 extrude_out.py

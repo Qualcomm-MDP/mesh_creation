@@ -1,0 +1,13 @@
+#!/bin/bash
+
+min_lat=${1:-test}
+min_lon=${2:-test}
+max_lat=${3:-test}
+max_lon=${4:-test}
+
+
+set -Eeuo pipefail
+set -x
+
+python3 api_buildings.py $min_lat $min_lon $max_lat $max_lon
+python3 extrude_out.py

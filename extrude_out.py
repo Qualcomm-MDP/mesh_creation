@@ -8,11 +8,11 @@ import PIL
 import matplotlib.pyplot as plt
 
 # Global, path to the outputted JSON file
-INPUT_JSON = "unix/osm_data_buildings.json" 
-STREET_JSON = "unix/osm_data_roads.json"
+INPUT_JSON = "osm_data_buildings.json" 
+STREET_JSON = "osm_data_roads.json"
 SCALE = 5 # What level of precision we want
 
-WRAP_IMG = "unix/wraps/IMG_5895.png"
+WRAP_IMG = "wraps/IMG_5895.png"
 
 # Will generate under the assumption that the starting_point is located in the top left corner
 def generate_plane(height, width):
@@ -199,7 +199,7 @@ def main():
                 mesh = mesh.to_mesh()
 
         print("Saved building mesh!\n")
-        mesh.export(f"unix/output_meshes/{id}.glb", file_type='glb')
+        mesh.export(f"output_meshes/{id}.glb", file_type='glb')
 
         # # Apply the wrap to the mesh
         # texture_img = PIL.Image.open(WRAP_IMG)

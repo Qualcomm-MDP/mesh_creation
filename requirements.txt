@@ -1,0 +1,13 @@
+shapely
+pyproj
+trimesh
+numpy
+matplotlib
+requests
+Pillow
+scipy
+opencv-python
+requests
+json
+sys
+math

@@ -1,9 +1,15 @@
 import requests
 import json
+import sys
 
-# These represent the region of interest, and we can change them here or control them elsewhere using like a website or smth like before
-min_lat, min_lon = 42.29025, -83.71978
-max_lat, max_lon = 42.29422, -83.71205
+min_lat = sys.argv[1]
+min_lon = sys.argv[2]
+max_lat = sys.argv[3]
+max_lon = sys.argv[4]
+
+# # These represent the region of interest, and we can change them here or control them elsewhere using like a website or smth like before
+# min_lat, min_lon = 42.29025, -83.71978
+# max_lat, max_lon = 42.29422, -83.71205
 
 # this is good for one-off buildings / sampling. should not be used for the actual pipeline
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -30,5 +36,5 @@ data_buildings["max_lon"] = max_lon
 data_buildings["min_lon"] = min_lon
 
 # Write to the JSON output
-with open("unix/osm_data_buildings.json", "w") as f:
+with open("osm_data_buildings.json", "w") as f:
     json.dump(data_buildings, f, indent=2)
