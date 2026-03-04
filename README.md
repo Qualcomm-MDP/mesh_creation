@@ -9,20 +9,24 @@ An example output of Lower Manhattan rendered out in Blender is shown below:
 
 <img width="1440" height="900" alt="Screenshot 2026-01-21 at 2 26 11 PM" src="https://github.com/user-attachments/assets/36a05c0c-1299-4d90-ab3e-5d31891a9fac" />
 
-## Splatoon
+To run the script, remember to download all of the libraries required in the requirements.txt. An example usage to run the mesh generation would be:
 
-The splatoon feature is a raycasting mode where the goal is to paint the 3D mesh, by casting out a bunch of colored rays, and then placing the color at the intersection
-between the mesh and the rays.
+```bash
+./bin/createmesh 42.29025 -83.71978 42.29422 -83.71205
+```
 
-After cloning it, a simple way to run the script can just be:
+The output of running the above command is shown below:
 
-python3 unix/splatoon.py
+<img width="1319" height="546" alt="Screenshot 2026-03-03 at 8 08 53 PM" src="https://github.com/user-attachments/assets/66a18647-5b7a-44a5-a621-fade2f57e7ac" />
 
-That will run splatoon script that is located in the folder titled "unix". That will use the pre-generated street mesh and coordinates. The script as of right now also outputs
-the generated mesh as a GLB file, but due to the way that I am rendering it right now, it is rather large. I am still working on the point clouds as they are a much more
-memory efficient way to place the colors, rather than generating out individual spheres wil color. However, this approach will work for now just to see what it is. You can render out the outputted GLB file using Liz's website viewer or another oneline tool. I am currently working on fixing the issues that I was running into previously, so just hang tight.
+The last 4 commands represent the minimum latitude, mininmum longitude, maximum latitude, maximum longitude to specify a bounding box to generate out the extruded regions. The output
+of the script will be a .glb file saved into combined.glb. Additionally, each building's .glb file will be stored in the output_meshes directory with each building mesh labeled with
+its OSM building way ID. To clear the directories, run 
 
-<img width="906" height="558" alt="Screenshot 2026-02-16 at 3 02 56 PM" src="https://github.com/user-attachments/assets/4ff3f34f-4308-49b9-94b2-7535a6161060" />
+```bash
+python3 reset.py
+```
 
+And this will clear out the output_meshes directory.
 
 
