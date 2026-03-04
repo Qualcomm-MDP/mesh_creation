@@ -1,7 +1,7 @@
 import os
 import shutil
 
-OUT_DIR = "unix/output_meshes"
+OUT_DIR = "output_meshes"
 if os.path.exists(OUT_DIR):
     shutil.rmtree(OUT_DIR)
     os.mkdir(OUT_DIR)
