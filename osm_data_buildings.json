@@ -1,8 +1,8 @@
 {
   "version": 0.6,
-  "generator": "Overpass API 0.7.62.10 2d4cfc48",
+  "generator": "Overpass API 0.7.62.11 87bfad18",
   "osm3s": {
-    "timestamp_osm_base": "2026-03-04T02:55:15Z",
+    "timestamp_osm_base": "2026-03-23T18:21:00Z",
     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
   },
   "elements": [
@@ -2679,6 +2679,100 @@
     },
     {
       "type": "way",
+      "id": 291965359,
+      "bounds": {
+        "minlat": 42.2898443,
+        "minlon": -83.7138516,
+        "maxlat": 42.2900972,
+        "maxlon": -83.7132129
+      },
+      "nodes": [
+        2954735559,
+        2954735560,
+        2954735561,
+        12338284406,
+        2954735562,
+        2954735563,
+        10803290033,
+        10803290029,
+        2954735564,
+        10803290040,
+        2954735565,
+        6893107677,
+        2954735566,
+        2954735559
+      ],
+      "geometry": [
+        {
+          "lat": 42.2900956,
+          "lon": -83.7133831
+        },
+        {
+          "lat": 42.2900972,
+          "lon": -83.7132161
+        },
+        {
+          "lat": 42.2899088,
+          "lon": -83.7132129
+        },
+        {
+          "lat": 42.289908,
+          "lon": -83.7132958
+        },
+        {
+          "lat": 42.2899072,
+          "lon": -83.7133798
+        },
+        {
+          "lat": 42.2898488,
+          "lon": -83.7133788
+        },
+        {
+          "lat": 42.289848,
+          "lon": -83.7134629
+        },
+        {
+          "lat": 42.2898472,
+          "lon": -83.7135508
+        },
+        {
+          "lat": 42.2898443,
+          "lon": -83.7138491
+        },
+        {
+          "lat": 42.2899576,
+          "lon": -83.7138511
+        },
+        {
+          "lat": 42.289988,
+          "lon": -83.7138516
+        },
+        {
+          "lat": 42.289991,
+          "lon": -83.7135385
+        },
+        {
+          "lat": 42.2899925,
+          "lon": -83.7133813
+        },
+        {
+          "lat": 42.2900956,
+          "lon": -83.7133831
+        }
+      ],
+      "tags": {
+        "addr:city": "Ann Arbor",
+        "addr:housenumber": "2360",
+        "addr:postcode": "48109",
+        "addr:state": "MI",
+        "addr:street": "Bonisteel Boulevard",
+        "building": "university",
+        "name": "Bonisteel Interdisciplinary Research Building",
+        "operator": "University of Michigan"
+      }
+    },
+    {
+      "type": "way",
       "id": 291965362,
       "bounds": {
         "minlat": 42.2905199,
@@ -2811,6 +2905,48 @@
         "name": "Michigan Memorial Phoenix Project",
         "operator": "University of Michigan",
         "start_date": "1955"
+      }
+    },
+    {
+      "type": "way",
+      "id": 316111381,
+      "bounds": {
+        "minlat": 42.2899976,
+        "minlon": -83.7117085,
+        "maxlat": 42.2901763,
+        "maxlon": -83.7115976
+      },
+      "nodes": [
+        3222200041,
+        3222200037,
+        3222200036,
+        3222200040,
+        3222200041
+      ],
+      "geometry": [
+        {
+          "lat": 42.2901763,
+          "lon": -83.7116006
+        },
+        {
+          "lat": 42.2899986,
+          "lon": -83.7115976
+        },
+        {
+          "lat": 42.2899976,
+          "lon": -83.7117055
+        },
+        {
+          "lat": 42.2901753,
+          "lon": -83.7117085
+        },
+        {
+          "lat": 42.2901763,
+          "lon": -83.7116006
+        }
+      ],
+      "tags": {
+        "building": "yes"
       }
     },
     {
@@ -3116,6 +3252,73 @@
         "name": "Leinweber Computer\u00a0Science Building",
         "operator": "University of Michigan",
         "website": "https://leinweber.bldg.umich.edu/"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1073711941,
+      "bounds": {
+        "minlat": 42.2928024,
+        "minlon": -83.7118934,
+        "maxlat": 42.2928932,
+        "maxlon": -83.7112991
+      },
+      "nodes": [
+        3062460252,
+        9849260342,
+        9849260340,
+        3062460250,
+        9849260339,
+        9849260338,
+        3062460251,
+        3062460252
+      ],
+      "geometry": [
+        {
+          "lat": 42.2928932,
+          "lon": -83.7112997
+        },
+        {
+          "lat": 42.2928045,
+          "lon": -83.7112991
+        },
+        {
+          "lat": 42.2928036,
+          "lon": -83.7115603
+        },
+        {
+          "lat": 42.2928024,
+          "lon": -83.7118928
+        },
+        {
+          "lat": 42.2928291,
+          "lon": -83.711893
+        },
+        {
+          "lat": 42.2928529,
+          "lon": -83.7118932
+        },
+        {
+          "lat": 42.2928911,
+          "lon": -83.7118934
+        },
+        {
+          "lat": 42.2928932,
+          "lon": -83.7112997
+        }
+      ],
+      "tags": {
+        "addr:city": "Ann Arbor",
+        "addr:state": "MI",
+        "addr:street": "Draper Drive",
+        "building": "university",
+        "building:levels": "1",
+        "building:material": "brick",
+        "description": "This building contains an electrical switching substation and, at the east end, a maintenance shop.",
+        "name": "North\u00a0Campus\u00a0Switching\u00a0Station",
+        "operator": "University of Michigan",
+        "ref": "408",
+        "roof:shape": "flat"
       }
     },
     {
@@ -3538,10 +3741,68 @@
       "tags": {
         "building": "roof"
       }
+    },
+    {
+      "type": "way",
+      "id": 1449576821,
+      "bounds": {
+        "minlat": 42.2900304,
+        "minlon": -83.7163333,
+        "maxlat": 42.2901438,
+        "maxlon": -83.7162393
+      },
+      "nodes": [
+        13296002943,
+        11880142549,
+        13296002944,
+        13296002947,
+        13296002949,
+        9816168313,
+        13296002952,
+        13296002943
+      ],
+      "geometry": [
+        {
+          "lat": 42.2900809,
+          "lon": -83.7162678
+        },
+        {
+          "lat": 42.2901321,
+          "lon": -83.7162393
+        },
+        {
+          "lat": 42.2901438,
+          "lon": -83.7162785
+        },
+        {
+          "lat": 42.2900609,
+          "lon": -83.7163231
+        },
+        {
+          "lat": 42.290042,
+          "lon": -83.7163333
+        },
+        {
+          "lat": 42.2900304,
+          "lon": -83.7162965
+        },
+        {
+          "lat": 42.2900501,
+          "lon": -83.7162853
+        },
+        {
+          "lat": 42.2900809,
+          "lon": -83.7162678
+        }
+      ],
+      "tags": {
+        "building": "roof",
+        "layer": "2"
+      }
     }
   ],
-  "max_lat": "42.29422",
-  "min_lat": "42.29025",
-  "max_lon": "-83.71205",
-  "min_lon": "-83.71978"
+  "max_lat": "42.29454",
+  "min_lat": "42.29006",
+  "max_lon": "-83.71167",
+  "min_lon": "-83.71996"
 }
